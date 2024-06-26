@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Search</title>
+    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        .search-container {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .dropdown {
+            position: relative;
+            margin-right: 10px;
+        }
+        .dropdown button {
+            width: 200px;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: white;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dropdown button:disabled {
+            background-color: #e9e9e9;
+            cursor: not-allowed;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 200px;
+            border: 1px solid #ccc;
+            z-index: 1;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+        .dropdown-content input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .dropdown-content div {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .dropdown-content div:hover {
+            background-color: #f1f1f1;
+        }
+        .search-bar input {
+            padding: 10px;
+            margin-right: 10px;
+            width: 200px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .search-bar button {
+            padding: 10px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .search-bar button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <div class="dropdown">
+            <button id="brandButton" onclick="toggleDropdown('brandDropdown')">
+                <span id="brandText">Car Brand</span>
+                <i class='bx bx-chevron-down'></i>
+            </button>
+            <div id="brandDropdown" class="dropdown-content" onclick="event.stopPropagation()">
+                <input type="text" id="brandSearch" placeholder="Search Brand" oninput="filterDropdown('brandSearch', 'brandDropdown')">
+                <div onclick="selectBrand('Ford')">Ford</div>
+                <div onclick="selectBrand('Chevrolet')">Chevrolet</div>
+                <div onclick="selectBrand('Toyota')">Toyota</div>
+                <!-- Add more brands as needed -->
+            </div>
+        </div>
+        <div class="dropdown">
+            <button id="modelButton" onclick="toggleDropdown('modelDropdown')" disabled>
+                <span id="modelText">Model</span>
+                <i class='bx bx-chevron-down'></i>
+            </button>
+            <div id="modelDropdown" class="dropdown-content" onclick="event.stopPropagation()">
+                <input type="text" id="modelSearch" placeholder="Search Model" oninput="filterDropdown('modelSearch', 'modelDropdown')">
+                <!-- Models will be populated dynamically -->
+            </div>
+        </div>
+        <div class="search-bar">
+            <input type="text" id="postalCodeInput" placeholder="Postal Code">
+            <button onclick="search()">
+                <i class='bx bx-search'></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const carData = {
+            'Ford': ['Mustang', 'F-150', 'Escape'],
+            'Chevrolet': ['Camaro', 'Silverado', 'Malibu'],
+            'Toyota': ['Corolla', 'Camry', 'RAV4']
+        };
+
+        function toggleDropdown(dropdownId) {
+            const dropdown = document.getElementById(dropdownId);
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function filterDropdown(inputId, dropdownId) {
+            const input = document.getElementById(inputId);
+            const filter = input.value.toLowerCase();
+            const div = document.getElementById(dropdownId);
+            const items = div.getElementsByTagName('div');
+            for (let i = 0; i < items.length; i++) {
+                const txtValue = items[i].textContent || items[i].innerText;
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                    items[i].style.display = '';
+                } else {
+                    items[i].style.display = 'none';
+                }
+            }
+        }
+
+        function selectBrand(brand) {
+            document.getElementById('brandText').innerText = brand;
+            const modelDropdown = document.getElementById('modelDropdown');
+            modelDropdown.innerHTML = `
+                <input type="text" id="modelSearch" placeholder="Search Model" oninput="filterDropdown('modelSearch', 'modelDropdown')">
+            `;
+            carData[brand].forEach(model => {
+                const modelDiv = document.createElement('div');
+                modelDiv.textContent = model;
+                modelDiv.onclick = () => selectModel(model);
+                modelDropdown.appendChild(modelDiv);
+            });
+            document.getElementById('modelButton').disabled = false;
+            toggleDropdown('brandDropdown');
+        }
+
+        function selectModel(model) {
+            document.getElementById('modelText').innerText = model;
+            toggleDropdown('modelDropdown');
+        }
+
+        function search() {
+            const brand = document.getElementById('brandText').innerText;
+            const model = document.getElementById('modelText').innerText;
+            const postalCode = document.getElementById('postalCodeInput').value;
+            alert(`Searching for ${brand} ${model} in ${postalCode}`);
+            // Implement the search functionality as needed
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.dropdown button')) {
+                const dropdowns = document.getElementsByClassName('dropdown-content');
+                for (let i = 0; i < dropdowns.length; i++) {
+                    dropdowns[i].style.display = 'none';
+                }
+            }
+        };
+    </script>
+</body>
+</html>
